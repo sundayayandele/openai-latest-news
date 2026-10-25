@@ -1,0 +1,21 @@
+flowchart LR
+    U["ChatGPT / Codex / API clients"] --> G["Regional API gateway / service mesh"]
+    G --> H["Habitat-style storage facade\nAuthZ, routing, throttling, residency"]
+    H --> C["Regional Valkey lookaside cache"]
+    C -- "hit" --> H
+    C -- "miss" --> D["Azure Cosmos DB\npartitioned multi-tenant containers"]
+    D --> H
+    H --> G
+    D -- "change feed" --> W["CDC consumers\nleases, checkpoints, DLQ"]
+    W -- "invalidate changed keys" --> C
+    W --> K["Kafka / downstream indexes & analytics"]
+    H -. "selected latency-critical datasets" .-> R["Geo-replicated Cosmos accounts"]
+    R -. "change feed" .-> W
+    subgraph Operational safeguards
+       Q["Tenant QoS + hot-key protection"]
+       O["Metrics: p50/p95/p99, RU, lag, cache hit, failover"]
+       P["Data residency + access policy"]
+    end
+    Q -.-> H
+    O -.-> H
+    P -.-> H
