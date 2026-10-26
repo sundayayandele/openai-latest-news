@@ -1,0 +1,19 @@
+flowchart LR
+    U["User / Business Application"] --> G["Identity & Policy Gateway"]
+    G --> O["Task Orchestrator / Budget Controller"]
+    O --> M["OpenAI Responses API<br/>GPT-6.1 Terra"]
+    M --> O
+    O --> V{"Proposed action allowed?"}
+    V -- "No" --> D["Deny + Audit"]
+    V -- "Yes" --> H{"Sensitive action?"}
+    H -- "Yes" --> A["Human Approval"]
+    H -- "No" --> X["Sandboxed Computer-Use Driver"]
+    A -- "Approved" --> X
+    A -- "Rejected" --> D
+    X --> T["Synthetic / Authorized Target App"]
+    T --> Q["Independent State Verifier"]
+    Q --> O
+    O --> R["Result + Evidence"]
+    O --> L[("Redacted Logs / Metrics")]
+    X --> L
+    G --> L
