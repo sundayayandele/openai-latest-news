@@ -1,0 +1,18 @@
+flowchart LR
+    subgraph Discovery["Discovery - untrusted model output"]
+        A["Research question and precise definitions"] --> B["AI research agent"]
+        B --> C["Natural-language manuscript"]
+        B --> D["Lean 4 formal proof"]
+    end
+    subgraph Validation["Independent validation boundary"]
+        C --> E["Mathematical specification review"]
+        D --> F["Pinned toolchain and reproducible build"]
+        F --> G["Lean kernel + axiom audit"]
+        E --> H["Independent expert reviewers"]
+        G --> H
+    end
+    H --> I{"Claims supported?"}
+    I -->|No| J["Revise / narrow / retract"]
+    J --> A
+    I -->|Yes| K["Qualified publication with artifacts"]
+    K --> L["Corrections and continued scrutiny"]
