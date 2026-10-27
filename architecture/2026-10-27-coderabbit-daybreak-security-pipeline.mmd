@@ -1,0 +1,36 @@
+%% Reference architecture for an evaluation lab; not CodeRabbit's internal implementation.
+flowchart TB
+  subgraph Authoring["Untrusted authoring boundary"]
+    DEV["Developer / AI coding agent"] --> PR["Pull request"]
+  end
+  subgraph Gate["Protected repository + CI"]
+    PR --> SAST["SAST / SCA / unit tests"]
+    PR --> AI["CodeRabbit Deep Scan / AI security reviewer"]
+    SAST --> TRIAGE["Findings and evidence triage"]
+    AI --> TRIAGE
+  end
+  subgraph Review["Human approval boundary"]
+    TRIAGE --> HUMAN["Security engineer validates reachability"]
+    HUMAN --> DECIDE{"Test justified?"}
+    DECIDE -->|No| DISPOSE["Document disposition"]
+  end
+  subgraph Isolation["Disposable, restricted verification boundary"]
+    DECIDE -->|Yes| SANDBOX["Synthetic data + restricted network sandbox"]
+    SANDBOX --> RESULT["Reproduction evidence"]
+  end
+  RESULT --> FIX["Proposed remediation pull request"]
+  FIX --> REGRESSION["CI: regression + security tests"]
+  REGRESSION --> OWNER{"Code owner approves?"}
+  OWNER -->|Yes| MERGE["Protected merge"]
+  OWNER -->|No| FIX
+  TRIAGE --> AUDIT["Immutable audit trail and metrics"]
+  DISPOSE --> AUDIT
+  RESULT --> AUDIT
+  OWNER --> AUDIT
+
+  classDef guarded fill:#eef4ff,stroke:#2c4f9c,color:#182b54;
+  classDef risky fill:#fff1e6,stroke:#ad5b15,color:#71380d;
+  classDef approval fill:#e6f7ef,stroke:#217a55,color:#14462f;
+  class PR,AI,SANDBOX risky;
+  class SAST,TRIAGE,AUDIT,REGRESSION guarded;
+  class HUMAN,DECIDE,OWNER,MERGE approval;
