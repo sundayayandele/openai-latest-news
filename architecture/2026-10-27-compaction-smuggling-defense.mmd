@@ -1,0 +1,32 @@
+%% Defensive reference architecture, NOT a reconstruction of OpenAI's internal fix.
+%% Source: Xint disclosure Oct 26, 2026; OpenAI Compaction API docs.
+flowchart TB
+  subgraph Tenant["Tenant-controlled application boundary"]
+    U["Authenticated user / workflow"] --> APP["Agent orchestration service"]
+    APP --> PG["Policy gateway\nidentity · tenant · purpose"]
+    APP --> OBS["Metadata-only audit / SIEM"]
+  end
+  subgraph Provider["Model and state-processing boundary"]
+    PG --> RM["Reasoning model"]
+    RM --> RS["Opaque reasoning artifact\ntype=reasoning"]
+    RS --> CP["Compaction transformer"]
+    CP --> CG["Transformation guard\nno privilege escalation"]
+    CG --> CA["Opaque compacted artifact\ntype=compaction"]
+  end
+  subgraph Transition["Cross-session / cross-model trust boundary"]
+    CA --> AV{"Provenance + scope\nconsumer validation"}
+    AV -->|authorized| NEXT["Approved model / next session"]
+    AV -->|rejected| DENY["Deny + audit event"]
+    NEXT --> OUTPUT["Application-visible result"]
+  end
+  PG -.-> OBS
+  CG -.-> OBS
+  AV -.-> OBS
+  DENY -.-> OBS
+  note["Illustrative security controls, not documented OpenAI production implementation"]
+  note -.-> CG
+  classDef boundary fill:#eef5ff,stroke:#2b5d8f,color:#0a2d4e
+  classDef control fill:#ecfdf3,stroke:#247a48,color:#15472a
+  classDef denied fill:#fff0f0,stroke:#ae3030,color:#6a1414
+  class PG,CG,AV control
+  class DENY denied
