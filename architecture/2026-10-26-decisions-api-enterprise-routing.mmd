@@ -1,0 +1,30 @@
+flowchart LR
+  subgraph Channels["Untrusted input channels"]
+    W["Web support tickets"]
+    V["GPT-Live voice events"]
+    E["Email / document intake"]
+  end
+  W --> ING
+  V --> ING
+  E --> ING
+  ING["Ingestion: authentication, PII minimization, normalization"] --> ORCH
+  ORCH["Decision orchestrator: schema, taxonomy, batching"] --> CACHE["Shared evidence + cache partition"]
+  CACHE --> API["OpenAI /v1/decisions\ngpt-6-luna"]
+  API --> VALID["Typed answer validation\nrefusal, confidence, probabilities"]
+  VALID --> POLICY["Independent policy engine\nRBAC + allowed actions + thresholds"]
+  POLICY -->|"Approved low risk"| QUEUE["Scoped work queue"]
+  POLICY -->|"Uncertain / high risk"| REVIEW["Human approval"]
+  REVIEW -->|"Approved"| QUEUE
+  REVIEW -->|"Rejected"| HOLD["No action / hold"]
+  QUEUE --> EXEC["Least-privilege executor"]
+  EXEC --> TARGET["Ticketing / CRM / business APIs"]
+  ORCH -.-> OBS["Metrics, traces, audit and evals"]
+  VALID -.-> OBS
+  POLICY -.-> OBS
+  EXEC -.-> OBS
+  classDef trust fill:#f3f4f6,stroke:#64748b,color:#111827
+  classDef model fill:#dbeafe,stroke:#2563eb,color:#111827
+  classDef safety fill:#dcfce7,stroke:#15803d,color:#111827
+  class ING,ORCH,CACHE trust
+  class API model
+  class VALID,POLICY,REVIEW,HOLD safety
