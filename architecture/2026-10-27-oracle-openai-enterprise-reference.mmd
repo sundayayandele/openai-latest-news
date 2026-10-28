@@ -1,0 +1,41 @@
+flowchart LR
+  %% Independent illustrative architecture, not Oracle internal design
+  subgraph Z1["Employee / startup team"]
+    U["User / employee"]
+  end
+  subgraph Z2["Enterprise trust boundary"]
+    ID["SSO / OIDC / RBAC"]
+    P["Policy + approval gateway"]
+    A["Audit / telemetry"]
+  end
+  subgraph Z3["Agent interaction (proposed)"]
+    C["ChatGPT / AI Workspace experience"]
+    O["Agent orchestration / tool selection"]
+  end
+  subgraph Z4["Authorized business systems"]
+    ERP["Fusion / NetSuite"]
+    DB["Oracle AI Database / approved data"]
+    OCI["OCI application runtime"]
+  end
+  subgraph Z5["Bounded security assessment"]
+    S["AI Security Mesh (announced)"]
+    V["Independent validation"]
+    H["Human remediation approval"]
+  end
+  subgraph Z6["Application delivery"]
+    D["Codex / App Composer (announced)"]
+    CI["CI/CD + SAST + SCA + tests"]
+  end
+  U --> ID --> C --> O
+  O --> P
+  P -->|"read/approved action"| ERP
+  P -->|"authorized data"| DB
+  O -->|"proposal"| D
+  D --> CI -->|"approved release"| OCI
+  OCI --> A
+  ERP --> A
+  DB --> A
+  P --> A
+  S -->|"scope-approved tests"| OCI
+  S --> V --> H --> CI
+  S --> A
