@@ -1,0 +1,37 @@
+flowchart LR
+  subgraph Ingress["Untrusted ingress"]
+    Caller["Synthetic caller / test audio"]
+    Tel["SIP / WebRTC / audio ingress"]
+    Caller --> Tel
+  end
+  subgraph Runtime["Agent runtime (controlled)"]
+    Orch["Streaming orchestrator\nturn detection / interruptions"]
+    Route["Model selector\nlatency vs reliability"]
+    MFast["Fast model adapter"]
+    MStrong["High-capability model adapter"]
+    Policy["Independent policy gateway"]
+    Tool["Synthetic CRM / approved tools"]
+    Human["Human approval / escalation"]
+    Orch --> Route
+    Route --> MFast
+    Route --> MStrong
+    MFast --> Policy
+    MStrong --> Policy
+    Policy -->|allow read-only| Tool
+    Policy -->|consequential action| Human
+    Human -->|approved| Tool
+  end
+  subgraph Eval["Evaluation and observability"]
+    Events["Event recorder\nno raw PII"]
+    Judge["Deterministic checks + blinded review"]
+    Metrics["P50/P95 latency, accuracy, cost\nresolution and escalation"]
+    Events --> Judge --> Metrics
+  end
+  Tel --> Orch
+  Orch --> Tel
+  Orch -. telemetry .-> Events
+  Policy -. decisions .-> Events
+  Tool -. outcomes .-> Events
+  Route -. model/cost .-> Events
+  classDef boundary fill:#fff5e6,stroke:#b9781b,color:#202020;
+  class Policy,Human boundary;
