@@ -1,0 +1,22 @@
+flowchart TD
+  U["Operator / DevSecOps"] --> IAM["Identity & Policy Gateway\nOIDC, RBAC, approvals"]
+  IAM --> ORCH["Agent Control Plane\nTask scope, signed receipts"]
+  ORCH --> SBOX["Ephemeral Agent Sandbox\nUnprivileged container in microVM"]
+  SBOX --> TOOLS["Scoped tools / code runner"]
+  TOOLS --> OFFLINE["Offline knowledge mirror\nApproved datasets / mock services"]
+  SBOX --> EGRESS["Default-deny egress\nDNS, proxy and service checks"]
+  EGRESS --> ALLOW["Explicitly approved destinations only"]
+  EGRESS -.-> BLOCK["Denied external routes"]
+  SBOX --> LOGS["Immutable audit and tool telemetry"]
+  EGRESS --> LOGS
+  ORCH --> LOGS
+  LOGS --> SIEM["SIEM / Alerting"]
+  SIEM --> STOP["Independent kill switch"]
+  STOP --> ORCH
+  POLICY["Kubernetes admission policy\nNo privileged pods, hostPath or broad tokens"] --> SBOX
+  ISOL["Host / tenant isolation\nPatch hypervisor, runtime and kernel"] --> SBOX
+  HUMAN["Human approval for consequential actions"] --> IAM
+  classDef trust fill:#e8f5e9,stroke:#256029,color:#111;
+  classDef deny fill:#fff1f0,stroke:#a61b1b,color:#111;
+  class IAM,ORCH,POLICY,ISOL,LOGS trust;
+  class BLOCK deny;
