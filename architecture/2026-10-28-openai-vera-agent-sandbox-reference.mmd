@@ -1,0 +1,49 @@
+%% Reference design for educational benchmarking, NOT OpenAI's actual infrastructure
+%% Published research: 2026-10-28
+flowchart LR
+    U["Authenticated user / benchmark harness"] --> GW["API gateway\nOIDC, quotas, request validation"]
+    GW --> ORCH["Agent orchestrator\nTask state, trace context, budgets"]
+    ORCH --> POLICY["Independent policy decision point\nTool allowlist, scope, approval"]
+    POLICY -->|authorized model call| MODEL["Model inference service\nGPU / hosted API"]
+    MODEL --> ORCH
+    POLICY -->|authorized tool call| Q["Work queue\nBackpressure and retries"]
+    Q --> SCHED["Sandbox scheduler\nCPU pool placement, quotas"]
+    SCHED --> CPU["Ephemeral CPU execution workers\nx86 baseline / Arm64 / Vera if accessible"]
+    CPU --> ISO["Isolated per-task sandbox\nEphemeral identity, filesystem limits"]
+    ISO --> TOOLS["Synthetic tools\nPython, schema tests, retrieval"]
+    ISO --> EGRESS["Default-deny egress\nApproved destinations only"]
+    TOOLS --> RESULT["Signed / validated tool result"]
+    RESULT --> ORCH
+    ORCH -->|sensitive action| HUMAN["Human approval checkpoint"]
+    HUMAN --> ORCH
+    ORCH --> OUT["Verified task result"]
+    GW -.-> OBS["OpenTelemetry / Prometheus / audit logs"]
+    ORCH -.-> OBS
+    Q -.-> OBS
+    SCHED -.-> OBS
+    CPU -.-> OBS
+    POLICY -.-> OBS
+    OBS --> EVAL["Benchmark analysis\np50/p95, throughput, failures, cost/success"]
+
+    subgraph TRUST["Untrusted execution boundary — proposed design"]
+        CPU
+        ISO
+        TOOLS
+        EGRESS
+    end
+
+    subgraph CONTROL["Trusted control plane — proposed design"]
+        GW
+        ORCH
+        POLICY
+        Q
+        SCHED
+        HUMAN
+    end
+
+    classDef untrusted fill:#fff0e8,stroke:#a84b16,color:#332016
+    classDef control fill:#e8f3ff,stroke:#245a93,color:#102b48
+    classDef metrics fill:#e9f8ee,stroke:#2b7650,color:#173e2b
+    class CPU,ISO,TOOLS,EGRESS untrusted
+    class GW,ORCH,POLICY,Q,SCHED,HUMAN control
+    class OBS,EVAL metrics
