@@ -1,0 +1,45 @@
+flowchart LR
+  %% CONCEPTUAL ARCHITECTURE: not a reverse-engineered OpenAI implementation
+  subgraph UserZone["User trust boundary"]
+    Phone["iPhone iMessage / Android RCS"]
+    User["Authenticated user"]
+  end
+  subgraph RelayZone["Third-party delivery boundary"]
+    Relay["Linq messaging relay\n(documented provider)"]
+  end
+  subgraph OpenAIZone["OpenAI service boundary\n(conceptual components)"]
+    Ingress["Channel ingress & identity binding\n(inferred component)"]
+    Dot["Persistent dot agent\n(shared context & plugins)"]
+    Memory["Conversation context & memory"]
+    Policy["Permissions, custom rules,\nauto-review & action checks"]
+    Approval["Authenticated ChatGPT\napproval flow"]
+    Audit["Observability & audit\n(proposed control)"]
+  end
+  subgraph Connected["Connected app boundary"]
+    Plugins["Permitted plugins"]
+    Apps["Calendar / tickets / files\n(authorized resources)"]
+  end
+  Phone -->|"Text, photo, voice message"| Relay
+  Relay -->|"Delivered message"| Ingress
+  Ingress --> Dot
+  Dot <--> Memory
+  Dot --> Policy
+  Policy -->|"Read permitted"| Plugins
+  Plugins --> Apps
+  Policy -->|"Sensitive action"| Approval
+  User --> Approval
+  Approval -->|"Approved scope"| Policy
+  Policy -->|"Authorized write only"| Plugins
+  Dot --> Audit
+  Policy --> Audit
+  Approval --> Audit
+  Dot -->|"Proactive update"| Ingress
+  Ingress --> Relay
+  Relay --> Phone
+
+  classDef trust fill:#e7f1ff,stroke:#4169a1,color:#122238;
+  classDef risk fill:#fff1d6,stroke:#a86b00,color:#382400;
+  classDef control fill:#e7f5e9,stroke:#2f855a,color:#153d28;
+  class Phone,User,Dot,Memory trust;
+  class Relay,Ingress risk;
+  class Policy,Approval,Audit control;
