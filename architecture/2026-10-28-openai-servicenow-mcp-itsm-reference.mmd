@@ -1,0 +1,38 @@
+%% OpenAI + ServiceNow MCP plugin — conceptual reference architecture, Oct 28 2026
+%% Based on official vendor announcements; exact internal implementation is not public.
+flowchart LR
+    subgraph Human["Enterprise users and approvals"]
+      U["IT analyst / SRE"]
+      H["Change owner / security approver"]
+    end
+    subgraph OpenAI["ChatGPT boundary"]
+      C["ChatGPT conversation\nReasoning and tool selection"]
+      MCP["ServiceNow MCP plugin\nApproved exposed capabilities"]
+    end
+    subgraph SN["ServiceNow enterprise boundary"]
+      AF["Action Fabric\nPolicy and workflow enforcement"]
+      ID["Identity / roles / ACLs"]
+      APP["Human approval gate\nfor consequential changes"]
+      ITSM["Incidents / changes / CMDB\nSystem of record"]
+      LOG["Audit history and monitoring"]
+    end
+    subgraph Untrusted["Untrusted inputs"]
+      T["Ticket text / external alerts"]
+    end
+
+    U -->|"Task / confirmation"| C
+    T -->|"Untrusted data"| C
+    C -->|"Proposed action"| MCP
+    MCP -->|"Authorized request context"| AF
+    ID -->|"Permission checks"| AF
+    AF -->|"If approval required"| APP
+    H -->|"Approve / reject"| APP
+    APP -->|"Only approved actions"| ITSM
+    AF -->|"Permitted low-risk action"| ITSM
+    ITSM -->|"Change history"| LOG
+    ITSM -->|"Read-back / result"| MCP
+    MCP --> C
+    LOG -->|"Evidence / alerts"| U
+
+    classDef critical fill:#fff0e6,stroke:#c75d00,color:#333;
+    class AF,APP,ID critical;
