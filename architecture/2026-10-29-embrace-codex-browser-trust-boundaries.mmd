@@ -1,0 +1,38 @@
+%% EMBRACE research-inspired defensive trust-boundary model, 2026-10-29
+%% Conceptual architecture; NOT an OpenAI/VS Code implementation diagram.
+flowchart LR
+    U["Developer"] --> REPO["Untrusted repository / downloaded HTML"]
+    REPO --> GATE{"Preview policy gate"}
+    GATE -->|"Untrusted or unknown"| ISO["Disposable VM / isolated standard browser"]
+    GATE -->|"Approved project only"| AGENT["AI coding agent"]
+    AGENT --> PREVIEW["Embedded preview / browser"]
+    PREVIEW -->|"Potential boundary: local file reads"| FS["Developer workstation filesystem"]
+    FS --> SEC["Secrets: SSH keys / tokens / .env"]
+    PREVIEW -->|"Potential boundary: network egress"| NET["External network"]
+    ISO --> MON["Telemetry and policy logs"]
+    AGENT --> MON
+    PREVIEW --> MON
+    FS --> MON
+    MON --> SOC["Security monitoring / incident response"]
+    VAULT["Scoped short-lived credentials / secret manager"] -.-> AGENT
+    POLICY["Endpoint inventory + least-privilege policy"] -.-> GATE
+    POLICY -.-> AGENT
+    POLICY -.-> PREVIEW
+
+    subgraph DEVICE["Developer endpoint — privileged trust zone"]
+        AGENT
+        PREVIEW
+        FS
+        SEC
+        MON
+    end
+    subgraph OUTSIDE["Lower-trust content and external destinations"]
+        REPO
+        ISO
+        NET
+    end
+
+    classDef danger fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d
+    classDef control fill:#dcfce7,stroke:#166534,color:#14532d
+    class PREVIEW,FS,SEC,NET danger
+    class GATE,ISO,VAULT,POLICY,MON,SOC control
