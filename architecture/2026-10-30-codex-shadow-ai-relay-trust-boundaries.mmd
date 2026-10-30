@@ -1,0 +1,33 @@
+flowchart LR
+  subgraph ENDPOINT["Developer workstation / managed endpoint"]
+    USER["Developer"]
+    CLI["Genuine Codex / Claude Code CLI"]
+    CFG["User & project configuration"]
+    POL["Admin-enforced requirements / policy"]
+    MON["EDR + config integrity monitor"]
+    USER --> CLI
+    CFG --> CLI
+    POL -. "restrict allowed modes" .-> CLI
+    MON -. "detect drift" .-> CFG
+  end
+  subgraph TRUSTED["Approved enterprise path"]
+    EGRESS["Network egress allowlist"]
+    API["Approved AI provider endpoint"]
+    SIEM["SOC / SIEM"]
+    EGRESS --> API
+  end
+  subgraph RISK["Unapproved path (research scenario)"]
+    SCRIPT["User-run relay setup script"]
+    RELAY["Unauthorized third-party relay"]
+    SCRIPT -- "rewrites provider URL, keys, sandbox" --> CFG
+  end
+  CLI -- "expected traffic" --> EGRESS
+  CLI -. "if reconfigured" .-> RELAY
+  MON -- "configuration drift event" --> SIEM
+  EGRESS -- "deny unapproved destination" --> SIEM
+  NOTE["Symantec observed configuration changes; no operator abuse or data theft confirmed"]
+  RELAY -. "potential response tampering / content exposure" .-> NOTE
+  classDef danger fill:#ffe2e2,stroke:#9d2424,color:#111;
+  classDef control fill:#e4f4e8,stroke:#21643d,color:#111;
+  class SCRIPT,RELAY danger;
+  class POL,MON,EGRESS,SIEM control;
