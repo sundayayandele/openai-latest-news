@@ -1,0 +1,56 @@
+%% Architecture: AI training usage preferences vs crawler access vs grounding
+%% Status: proposal announced 2026-10-30; vendor enforcement rollout is staggered.
+flowchart LR
+  subgraph OWN["Publisher / website control plane"]
+    GOV["Policy owner + legal / SEO approval"]
+    GIT["Version-controlled policy"]
+    CI["CI checks: syntax, paths, precedence"]
+    DEP["Staging -> production deployment"]
+    GOV --> GIT --> CI --> DEP
+  end
+
+  subgraph EDGE["Website delivery"]
+    WEB["Web server / CDN / WordPress"]
+    ROB["/robots.txt"]
+    PAGE["HTML pages + headers"]
+    WEB --> ROB
+    WEB --> PAGE
+    DEP --> WEB
+  end
+
+  subgraph POL["Separate preference dimensions"]
+    TRAIN["Shared policy token:\nUser-Agent: __usage_ai-training\nDisallow: /"]
+    CRAWL["Crawler-specific robots groups:\nGPTBot, Googlebot, etc."]
+    GROUND["Microsoft page-level:\nai-grounding:disallow\n(or disallowextended)"]
+  end
+
+  ROB --> TRAIN
+  ROB --> CRAWL
+  PAGE --> GROUND
+
+  subgraph PROVIDERS["Provider interpretation / rollout"]
+    OAI["OpenAI\nplans implementation in coming months"]
+    GGL["Google\nplans support in 2027"]
+    BNG["Microsoft Bing\nstarts Feb 1, 2027 on crawl"]
+  end
+
+  TRAIN -. "usage preference; not access block" .-> OAI
+  TRAIN -. "usage preference; vendor precedence" .-> GGL
+  TRAIN -. "usage preference" .-> BNG
+  CRAWL --> BOT["Crawler traffic policy\nindependent of training use"]
+  GROUND -. "Microsoft-only grounding policy" .-> BNG
+
+  subgraph OBS["Verification and governance"]
+    CURL["HTTP delivery / syntax checks"]
+    SEO["Search Console + Bing Webmaster Tools"]
+    AUD["Change audit + rollout watch"]
+  end
+
+  ROB --> CURL
+  PAGE --> CURL
+  BOT --> SEO
+  BNG --> SEO
+  GIT --> AUD
+
+  NOTE["CAUTION: An IETF Internet-Draft is not a ratified standard.\nrobots.txt is not an authentication or security boundary."]
+  NOTE -.-> TRAIN
