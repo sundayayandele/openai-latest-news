@@ -1,0 +1,30 @@
+flowchart LR
+  U[Authorized user] --> A[Application agent orchestrator]
+  A --> R[Responses API\ncovered model / state tracking]
+  R --> A
+  A --> P{Independent tool policy gateway}
+  P -->|read-only| T1[Sandboxed read tools]
+  P -->|approved| T2[Change tools / synthetic ticket DB]
+  P -->|deny / paused| X[Reject & audit]
+  H[Human approver] --> P
+  A --> L[Immutable app audit log]
+  P --> L
+  T1 --> L
+  T2 --> L
+
+  subgraph Provider[Provider monitoring — separate asynchronous plane]
+    M[Misalignment monitoring\nL0–L3 concept / external variant]
+    E[Safety alert webhook]
+  end
+  R -. tool-use signals .-> M
+  M -. when supported .-> R
+  M --> E
+  E --> V[Webhook signature verification\n+ deduplication]
+  V --> Q[Incident queue]
+  Q --> K[Application-owned pause / kill state]
+  K --> P
+  Q --> S[Security team / SIEM]
+  S --> H
+
+  classDef warning fill:#ffe4cc,stroke:#d97706,color:#222;
+  class E,K,P warning;
