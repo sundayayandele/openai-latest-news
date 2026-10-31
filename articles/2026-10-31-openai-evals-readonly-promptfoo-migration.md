@@ -117,7 +117,7 @@ Version `promptfooconfig.yaml` and fixtures in Git, restrict secrets to CI secre
 
 ### Step 5: Separate other November 30 migrations
 
-**Agent Builder:** inspect workflow nodes, tool permissions, hosted workflow IDs, ChatKit integration and state. Use the [official Agent Builder migration guide](https://developers.openai.com/api/docs/guides/agent-builder-migration) if available for your environment; the authoritative entry point is linked from [OpenAI deprecations](https://developers.openai.com/api/docs/deprecations). An SDK code export may not preserve all visual workflow semantics, so regression-test.
+**Agent Builder:** inspect workflow nodes, tool permissions, hosted workflow IDs, ChatKit integration and state. Use the [official Agent Builder migration guide](https://developers.openai.com/api/docs/guides/agent-builder/migrate-from-agent-builder) if available for your environment; the authoritative entry point is linked from [OpenAI deprecations](https://developers.openai.com/api/docs/deprecations). An SDK code export may not preserve all visual workflow semantics, so regression-test.
 
 **Reusable prompt objects:** move the prompt text, variables and version history into application-managed code/configuration. Verify no production path still calls the retiring `/v1/prompts` API.
 
