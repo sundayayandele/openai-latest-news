@@ -1,0 +1,21 @@
+flowchart LR
+  subgraph LEGACY["Retiring hosted OpenAI Evals (read-only Oct 31; sunset Nov 30)"]
+    E["Eval definitions and graders"]
+    R["Runs and output items"]
+    D["Datasets / prompt versions"]
+  end
+  E --> X["Authorized read-only inventory + archive"]
+  R --> X
+  D --> X
+  X --> G["Private version-controlled Git repository"]
+  subgraph CI["Isolated CI/CD evaluation job"]
+    G --> C["Promptfoo YAML, fixtures and assertions"]
+    C --> P["Promptfoo runner"]
+    P --> Q["Quality gate: pass/fail, drift and cost"]
+  end
+  P -->|Scoped secret; monitored API calls| O["OpenAI Responses / selected model"]
+  O --> P
+  Q --> A["Archived run reports"]
+  Q -->|Approved changes only| PROD["Deployment"]
+  SEC["Secrets manager"] -->|Ephemeral key| P
+  HUMAN["Human reviewer"] -->|Review failures| Q
