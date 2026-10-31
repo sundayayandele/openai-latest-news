@@ -1,0 +1,34 @@
+flowchart LR
+  subgraph DEV["Developer workstation — lower trust if compromised"]
+    USER["Developer / authorized app"]
+    ENV["Process/user environment\nOPENAI_API_KEY (sensitive)"]
+    BAD["Compromised process\nNIK C2 class (conceptual only)"]
+  end
+  subgraph PLATFORM["Enterprise-controlled boundary"]
+    BROKER["Approved backend broker\nidentity, authorization, rate limits"]
+    VAULT["Secrets manager / workload identity"]
+    POLICY["Egress + device controls"]
+    SIEM["SOC / SIEM\nendpoint + usage alerts"]
+  end
+  subgraph PROVIDER["OpenAI organization / projects"]
+    API["OpenAI API"]
+    METER["Project/key usage and spend controls"]
+  end
+  USER -->|"Approved app call"| BROKER
+  BROKER -->|"Scoped secret retrieval"| VAULT
+  VAULT --> BROKER
+  BROKER -->|"Approved API requests"| API
+  API --> METER
+  BAD -.->|"If endpoint compromised,\ncan read accessible environment"| ENV
+  BAD -.->|"Talos observed operator-directed\nAPI calls from victim host"| API
+  POLICY -->|"Limit unauthorized egress"| BAD
+  POLICY -->|"Restrict approved API path"| BROKER
+  METER -->|"Unexpected usage"| SIEM
+  BAD -->|"Endpoint telemetry"| SIEM
+  SIEM -->|"Investigate / isolate / revoke"| POLICY
+  classDef trusted fill:#e5f5e8,stroke:#277a3b,color:#122b17;
+  classDef risky fill:#fff0ef,stroke:#b72b22,color:#4b1611;
+  classDef monitored fill:#edf3ff,stroke:#3256a8,color:#15284e;
+  class BROKER,VAULT,POLICY trusted;
+  class BAD,ENV risky;
+  class SIEM,METER monitored;
