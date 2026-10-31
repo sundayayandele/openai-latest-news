@@ -1,0 +1,30 @@
+%% Recommended editorial reference architecture, not OpenAI internal infrastructure
+flowchart TD
+  A["Developer or Team Lead"] --> B["Verify current plan, workspace permissions, and allowance"]
+  B --> C["Classify Work/Codex task: risk, value, expected cost"]
+  C --> D{"Approved and within team policy?"}
+  D -->|No| E["Defer, narrow scope, or request human approval"]
+  D -->|Yes| F["Run task in approved repo / workspace"]
+  F --> G["Record model, mode, usage, duration, and reset window"]
+  G --> H{"Credit balance or spend threshold reached?"}
+  H -->|Yes| I["Pause optional tasks; authorize extra credits separately"]
+  H -->|No| J["Review code, tests, and accepted outcome"]
+  I --> J
+  J --> K["Report cost and usage per accepted task"]
+  K --> L["Reforecast weekly capacity"]
+  L --> C
+  E --> L
+
+  subgraph TrustBoundary["Organization governance boundary"]
+    B
+    C
+    D
+    G
+    H
+    I
+    K
+    L
+  end
+
+  classDef caution fill:#fff2d6,stroke:#ae7900,color:#222;
+  class E,I caution;
