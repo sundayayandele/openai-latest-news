@@ -1,0 +1,48 @@
+flowchart TB
+  subgraph Identity["Subscription and billing ownership boundary"]
+    OWNER["Eligible Pro / Business owner\nSame email as API org owner"]
+    SUB["ChatGPT subscription / workspace\nPaid >= 7 days"]
+    ACT["Claim and link API credits\nOne owned API organization"]
+    GRANT["Promotional credit grant\nAmount, expiry, no rollover"]
+    OWNER --> SUB --> ACT --> GRANT
+  end
+
+  subgraph Platform["API organization and project boundary"]
+    ORG["Linked OpenAI API organization"]
+    PROJ["Dedicated project\nScoped API key + rate limits"]
+    BILL["API billing / credit grants\nPromotional before purchased"]
+    OWNER --> ORG
+    ACT --> ORG
+    ORG --> PROJ
+    GRANT -. "Grant applies to" .-> BILL
+    PROJ -. "Usage billed against" .-> BILL
+  end
+
+  subgraph Application["Proposed demonstration workload: separate trust boundary"]
+    USER["Synthetic support tickets"]
+    APP["FastAPI service\nInput validation"]
+    POLICY["Policy and budget guard\nNo auto-recharge assumption"]
+    MODEL["OpenAI API client\nResponses / Agents / Decisions"]
+    REVIEW["Human review queue\nNo real-world write actions"]
+    USER --> APP --> POLICY --> MODEL
+    MODEL --> REVIEW
+  end
+
+  subgraph Controls["Operations and security"]
+    SECRETS["Server-side secret manager\nProject key; never in browser"]
+    USAGE["Usage and cost ledger\nEstimated cost vs grant remaining"]
+    OBS["Monitoring / alerting\nExpiry, limits, 429 exhaustion"]
+    ADMIN["Billing owner\nApproves paid top-ups"]
+  end
+
+  PROJ --> SECRETS --> MODEL
+  MODEL --> USAGE --> OBS
+  BILL --> USAGE
+  OBS --> ADMIN
+  ADMIN -. "Explicit authorization only" .-> BILL
+  POLICY --> OBS
+
+  classDef warn fill:#fff2cc,stroke:#b98c00,color:#1a1a1a
+  classDef trust fill:#e8f2ff,stroke:#3778bf,color:#1a1a1a
+  class BILL,GRANT,ADMIN warn
+  class APP,POLICY,SECRETS trust
