@@ -1,0 +1,36 @@
+flowchart LR
+    subgraph Untrusted["Untrusted input boundary"]
+        U["User task"]
+        D["Synthetic tickets / invoices"]
+        M["External agent messages (synthetic)"]
+    end
+    subgraph App["Application trust boundary"]
+        API["FastAPI orchestrator"]
+        CTX["Identity + resource context"]
+        MODEL["OpenAI Responses API\nTerra / Sol (A/B)"]
+        PROPOSAL["Structured tool proposal"]
+        POLICY{"External policy gate\nprincipal + action + resource"}
+        APPROVAL{"Human approval\nfor consequential writes"}
+        TOOLS["Mock tools\nread / draft / apply"]
+        AUDIT[("Append-only audit events")]
+        METRICS[("Metrics: quality, latency,\ntokens, cost, denials")]
+    end
+    U --> API
+    D --> API
+    M --> API
+    API --> CTX
+    API --> MODEL
+    MODEL --> PROPOSAL
+    CTX --> POLICY
+    PROPOSAL --> POLICY
+    POLICY -->|denied| AUDIT
+    POLICY -->|read-only allowed| TOOLS
+    POLICY -->|write allowed| APPROVAL
+    APPROVAL -->|approved| TOOLS
+    APPROVAL -->|rejected| AUDIT
+    TOOLS --> AUDIT
+    MODEL --> METRICS
+    POLICY --> METRICS
+    TOOLS --> METRICS
+    classDef critical fill:#fff4dd,stroke:#b87912,color:#111;
+    class POLICY,APPROVAL critical;
